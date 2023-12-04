@@ -1,0 +1,20 @@
+@import '../../styles/variables.scss';
+
+.converter {
+    &__container {
+        display: grid;
+        border: 1px solid black;
+        border-radius: 7px;
+        row-gap: 10px;
+        margin-left: 10px;
+        background: #d8d8d8d3;
+    }
+    &__btns {
+        //     display: flex;
+        margin-bottom: 10px;
+    }
+}
+
+// .vr {
+//     height: 100%;
+// }
