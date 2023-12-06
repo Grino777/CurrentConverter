@@ -1,3 +1,7 @@
+import { useEffect, useState } from 'react';
+
+import GetCurrencies from '../../services/getCurrencies';
+
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
@@ -5,7 +9,6 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Spinner from 'react-bootstrap/Spinner';
 
-import { useState } from 'react';
 import './blockConverter.scss';
 
 function BlockConverter(props) {
@@ -14,6 +17,7 @@ function BlockConverter(props) {
     const currencies = ['RUB', 'USD', 'EUR'];
 
     const [result, setResult] = useState(0);
+    const [responseData, setResponseData] = useState(null);
     const [tempInput, setTempInput] = useState('');
     const [error, setError] = useState(false);
     const [timer, setTimer] = useState(null);
@@ -21,25 +25,64 @@ function BlockConverter(props) {
     const [currency, setCurrency] = useState('USD');
     const [loading, setLoading] = useState(false);
 
-    // useEffect(() => {}, [input])
+    useEffect(() => {
+        if (input && currency) {
+            console.log('Отправлен запрос!');
+
+            setLoading(true);
+
+            GetCurrencies(currency)
+                .then((data) => {
+                    setResponseData(data.quotes);
+                })
+                .finally(setLoading(false));
+        }
+    }, [input, currency]);
 
     const errorStyle = error
         ? { backgroundColor: 'rgba(255, 0, 0, 0.203)' }
         : null;
 
-    const checkingForWrite = (e) => {
-        clearTimeout(timer);
-
-        setTimer(
-            setTimeout(() => {
-                setInput(tempInput);
-            }, 1500)
-        );
+    const chekInput = (value) => {
+        const regexp = /^\d+$/gm;
+        return value.match(regexp);
     };
 
-    function resetInputField() {
+    const checkingForWrite = () => {
+        clearTimeout(timer);
+
+        const check = setTimeout(() => {
+            if (chekInput(tempInput)) {
+                setError(false);
+                setInput(+tempInput);
+            } else {
+                setError(true);
+            }
+        }, 1500);
+
+        setTimer(check);
+    };
+
+    const resetInputField = () => {
+        setError(false);
         setTempInput('');
-    }
+        setInput('');
+        setResult(0);
+    };
+
+    const onPressCurrencyButton = (e) => {
+        const buttonValue = e.target.value,
+            resStr = currency + buttonValue;
+
+        let res = 0;
+
+        if (currency === buttonValue) {
+            setResult(input);
+        } else if (input) {
+            res = (input * responseData[resStr]).toFixed(2);
+            setResult(res);
+        }
+    };
 
     const resultBlock = loading ? (
         <Spinner animation="border" role="status" variant="secondary" />
@@ -119,18 +162,27 @@ function BlockConverter(props) {
             </Row>
             {/* Result field end */}
 
-            <ButtonsField currencies={currencies} />
+            <ButtonsField
+                currencies={currencies}
+                onPressCurrencyButton={onPressCurrencyButton}
+            />
         </Container>
     );
 }
 
 const ButtonsField = (props) => {
-    const { currencies } = props;
+    const { currencies, onPressCurrencyButton } = props;
 
     const newData = currencies.map((cur, i) => {
         return (
             <Col key={i}>
-                <Button className="w-100" xs="w-100" variant="light">
+                <Button
+                    className="w-100"
+                    xs="w-100"
+                    variant="light"
+                    value={cur}
+                    onClick={onPressCurrencyButton}
+                >
                     {cur}
                 </Button>
             </Col>
