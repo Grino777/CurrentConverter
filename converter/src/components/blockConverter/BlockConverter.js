@@ -1,10 +1,9 @@
-import debounce from 'lodash.debounce';
-
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
+import Spinner from 'react-bootstrap/Spinner';
 
 import { useState } from 'react';
 import './blockConverter.scss';
@@ -15,35 +14,46 @@ function BlockConverter(props) {
     const currencies = ['RUB', 'USD', 'EUR'];
 
     const [result, setResult] = useState(0);
-    const [input, setInput] = useState('123');
+    const [tempInput, setTempInput] = useState('');
     const [error, setError] = useState(false);
+    const [timer, setTimer] = useState(null);
+    const [input, setInput] = useState('');
+    const [currency, setCurrency] = useState('USD');
+    const [loading, setLoading] = useState(false);
+
+    // useEffect(() => {}, [input])
 
     const errorStyle = error
         ? { backgroundColor: 'rgba(255, 0, 0, 0.203)' }
         : null;
 
-    function updateInput(value) {
-        console.log(value);
-        const result = checkInputValue(value);
-        setInput(result);
-        // debugger;
-    }
+    const checkingForWrite = (e) => {
+        clearTimeout(timer);
 
-    function checkInputValue(e) {
-        const value = e.target.value;
-        const newValue = +value;
-        if (newValue) {
-            return newValue;
-        } else {
-            return value;
-        }
-    }
+        setTimer(
+            setTimeout(() => {
+                setInput(tempInput);
+            }, 1500)
+        );
+    };
 
     function resetInputField() {
-        setInput('');
+        setTempInput('');
     }
 
-    const debounceInput = debounce((e) => updateInput(e), 1000);
+    const resultBlock = loading ? (
+        <Spinner animation="border" role="status" variant="secondary" />
+    ) : (
+        <Form.Control
+            className="converter__result"
+            disabled
+            style={{
+                textAlign: 'center',
+                opacity: '0.7',
+            }}
+            value={result}
+        />
+    );
 
     return (
         <Container className="converter__container col-xs-12 col-sm-8 col-md-8 col-lg-8 col-xl-5 col-xxl-5">
@@ -64,14 +74,18 @@ function BlockConverter(props) {
                     <Form.Control
                         type="text"
                         placeholder="Currency"
-                        defaulValue={input}
-                        // onChange={(e) => debounceInput(e)}
-                        onChange={updateInput}
+                        value={tempInput}
+                        onChange={(e) => setTempInput(e.target.value)}
+                        onKeyUp={(e) => checkingForWrite(e)}
                         style={errorStyle}
                     />
                 </Col>
                 <Col xs="auto" sm={3} md={3} lg={3} xl={3}>
-                    <Form.Select aria-label="Выбирите валюту">
+                    <Form.Select
+                        aria-label="Выбирите валюту"
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value)}
+                    >
                         <option value="RUB">RUB</option>
                         <option value="USD">USD</option>
                         <option value="EUR">EUR</option>
@@ -101,14 +115,7 @@ function BlockConverter(props) {
 
             {/* Result field */}
             <Row className="w-25 m-auto">
-                <Form.Control
-                    disabled
-                    style={{
-                        textAlign: 'center',
-                        opacity: '0.7',
-                    }}
-                    value={result}
-                />
+                <div className="converter__result"> {resultBlock} </div>
             </Row>
             {/* Result field end */}
 
