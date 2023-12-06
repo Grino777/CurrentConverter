@@ -12,7 +12,6 @@ import Spinner from 'react-bootstrap/Spinner';
 import './blockConverter.scss';
 
 function BlockConverter(props) {
-    // GetCurrencies();
 
     const currencies = ['RUB', 'USD', 'EUR'];
 
